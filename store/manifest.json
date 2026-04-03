@@ -8,5 +8,175 @@
       "upload",
       "store"
     ]
+  },
+  {
+    "name": "roe_bisection.mlx",
+    "path": "store/roe_bisection.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_bisection1.mlx",
+    "path": "store/roe_bisection1.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_false_position.mlx",
+    "path": "store/roe_false_position.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_modified_false_position.mlx",
+    "path": "store/roe_modified_false_position.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_newton_raphson.mlx",
+    "path": "store/roe_newton_raphson.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_op_iteration.mlx",
+    "path": "store/roe_op_iteration.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "roe_secant.mlx",
+    "path": "store/roe_secant.mlx",
+    "language": "none",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "s13.m",
+    "path": "store/s13.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "s38.m",
+    "path": "store/s38.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_gauss_elimination_ppivot.m",
+    "path": "store/soe_gauss_elimination_ppivot.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_gauss_elimination.m",
+    "path": "store/soe_gauss_elimination.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_gauss_jordan_ppivot.m",
+    "path": "store/soe_gauss_jordan_ppivot.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_gauss_jordan.m",
+    "path": "store/soe_gauss_jordan.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_gauss_seidel.m",
+    "path": "store/soe_gauss_seidel.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_jacobi.m",
+    "path": "store/soe_jacobi.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "soe_newton_raphson.m",
+    "path": "store/soe_newton_raphson.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "trap.m",
+    "path": "store/trap.m",
+    "language": "matlab",
+    "description": "Uploaded from homepage.",
+    "tags": [
+      "upload",
+      "store"
+    ]
   }
 ]

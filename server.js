@@ -44,7 +44,8 @@ const extensionLanguageMap = {
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 2 * 1024 * 1024
+    fileSize: 2 * 1024 * 1024,
+    files: 50
   }
 });
 
@@ -123,59 +124,106 @@ app.get("/api/store-manifest", async (req, res) => {
   }
 });
 
-app.post("/api/upload", upload.single("codeFile"), async (req, res, next) => {
+app.post("/api/upload", upload.array("codeFile", 50), async (req, res, next) => {
   try {
-    if (!req.file) {
+    const files = Array.isArray(req.files) ? req.files : [];
+    if (!files.length) {
       return res.status(400).json({ error: "No file uploaded." });
-    }
-
-    const fileName = sanitizeFileName(req.file.originalname);
-    if (!fileName) {
-      return res.status(400).json({ error: "Invalid file name." });
-    }
-
-    if (fileName.toLowerCase() === "manifest.json") {
-      return res.status(400).json({ error: "manifest.json is reserved." });
     }
 
     await ensureStoreReady();
 
-    const destinationPath = path.join(storeDir, fileName);
-    const relativePath = `store/${fileName}`;
+    const description = parseDescription(req.body && req.body.description);
+    const tags = parseTags(req.body && req.body.tags);
 
-    try {
-      await fs.writeFile(destinationPath, req.file.buffer, { flag: "wx" });
-    } catch (error) {
-      if (error && error.code === "EEXIST") {
-        return res.status(409).json({
-          error: "A file with the same name already exists. Upload blocked to prevent overwrite."
+    const uploaded = [];
+    const rejected = [];
+    const writtenPaths = [];
+
+    for (const file of files) {
+      const sourceName = file && typeof file.originalname === "string" ? file.originalname : "";
+      const fileName = sanitizeFileName(sourceName);
+      const originalName = sourceName || "unknown";
+
+      if (!fileName) {
+        rejected.push({
+          name: originalName,
+          code: "INVALID_NAME",
+          error: "Invalid file name."
         });
+        continue;
       }
-      throw error;
+
+      if (fileName.toLowerCase() === "manifest.json") {
+        rejected.push({
+          name: originalName,
+          code: "RESERVED_NAME",
+          error: "manifest.json is reserved."
+        });
+        continue;
+      }
+
+      const destinationPath = path.join(storeDir, fileName);
+      const relativePath = `store/${fileName}`;
+
+      try {
+        await fs.writeFile(destinationPath, file.buffer, { flag: "wx" });
+      } catch (error) {
+        if (error && error.code === "EEXIST") {
+          rejected.push({
+            name: originalName,
+            code: "EEXIST",
+            error: "A file with the same name already exists. Upload blocked to prevent overwrite."
+          });
+          continue;
+        }
+        throw error;
+      }
+
+      writtenPaths.push(destinationPath);
+      uploaded.push({
+        name: fileName,
+        path: relativePath,
+        language: inferLanguage(fileName),
+        description,
+        tags
+      });
     }
 
-    const item = {
-      name: fileName,
-      path: relativePath,
-      language: inferLanguage(fileName),
-      description: parseDescription(req.body && req.body.description),
-      tags: parseTags(req.body && req.body.tags)
-    };
+    if (!uploaded.length) {
+      const onlyDuplicates = rejected.length > 0
+        && rejected.every((item) => item && item.code === "EEXIST");
+
+      return res.status(onlyDuplicates ? 409 : 400).json({
+        error: onlyDuplicates
+          ? "No files uploaded. All selected names already exist in store."
+          : "No files uploaded.",
+        uploaded,
+        rejected
+      });
+    }
 
     try {
       const manifest = await readManifest();
-      const withoutDuplicatePath = manifest.filter((entry) => entry && entry.path !== relativePath);
-      withoutDuplicatePath.push(item);
+      const uploadedPathSet = new Set(uploaded.map((item) => item.path));
+      const withoutDuplicatePath = manifest.filter((entry) => entry && !uploadedPathSet.has(entry.path));
+      withoutDuplicatePath.push(...uploaded);
       withoutDuplicatePath.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
       await writeManifest(withoutDuplicatePath);
     } catch (error) {
-      await fs.unlink(destinationPath).catch(() => {
-        return null;
-      });
+      await Promise.all(
+        writtenPaths.map((filePath) => fs.unlink(filePath).catch(() => {
+          return null;
+        }))
+      );
       throw error;
     }
 
-    return res.status(201).json({ message: "Upload saved.", item });
+    const message = rejected.length
+      ? `Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) were rejected.`
+      : `Uploaded ${uploaded.length} file(s).`;
+
+    return res.status(201).json({ message, uploaded, rejected });
   } catch (error) {
     return next(error);
   }
@@ -186,6 +234,10 @@ app.use(express.static(rootDir));
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
     return res.status(413).json({ error: "File too large. Max size is 2MB." });
+  }
+
+  if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_COUNT") {
+    return res.status(400).json({ error: "Too many files. Max 50 files per upload." });
   }
 
   console.error(error);
