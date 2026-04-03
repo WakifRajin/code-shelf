@@ -377,6 +377,24 @@
             gap: 14px;
         }
 
+        .viewer-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .zoom-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+            border: 1px solid #cfe2de;
+            border-radius: 12px;
+            background: #f4f8f7;
+        }
+
         .viewer-title {
             margin: 0;
             font-size: 1rem;
@@ -396,6 +414,26 @@
             color: var(--accent);
             border-color: #b9dcd5;
             min-width: 92px;
+        }
+
+        .zoom-button {
+            min-width: 0;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #0d665e;
+            border-color: #c5dbd7;
+            font-family: "IBM Plex Mono", Consolas, monospace;
+            font-size: 0.76rem;
+        }
+
+        .zoom-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        #zoom-reset {
+            min-width: 64px;
         }
 
         .copy-button:hover:not(:disabled) {
@@ -486,6 +524,11 @@
             .viewer-top {
                 flex-wrap: wrap;
             }
+
+            .viewer-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
     </style>
 </head>
@@ -563,7 +606,14 @@
                     <h2 class="viewer-title" id="viewer-title">Select a file to begin</h2>
                     <p class="viewer-subtitle" id="viewer-subtitle">Library files and local uploads render here</p>
                 </div>
-                <button id="copy-code" class="copy-button" type="button" disabled>Copy Code</button>
+                <div class="viewer-actions">
+                    <div class="zoom-controls" role="group" aria-label="Code text zoom controls">
+                        <button id="zoom-out" class="copy-button zoom-button" type="button" aria-label="Zoom out code text">A-</button>
+                        <button id="zoom-reset" class="copy-button zoom-button" type="button" aria-label="Reset code text zoom">100%</button>
+                        <button id="zoom-in" class="copy-button zoom-button" type="button" aria-label="Zoom in code text">A+</button>
+                    </div>
+                    <button id="copy-code" class="copy-button" type="button" disabled>Copy Code</button>
+                </div>
             </div>
             <pre id="code-shell" class="code-shell line-numbers"><code id="code-block" class="language-none">Choose a file from the list to preview code with syntax highlighting.</code></pre>
         </section>
@@ -582,6 +632,13 @@
         const fallbackManifestPath = "store/manifest.json";
         const uploadApiPath = "/api/upload";
         const isGitHubPages = window.location.hostname.endsWith("github.io");
+        const codeZoomConfig = {
+            defaultPx: 13,
+            minPx: 11,
+            maxPx: 28,
+            stepPx: 1,
+            storageKey: "code-shelf-code-font-size"
+        };
 
         if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
             Prism.plugins.autoloader.languages_path = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/";
@@ -635,6 +692,9 @@
             statVisible: document.getElementById("stat-visible"),
             uploadStatus: document.getElementById("upload-status"),
             footerNote: document.getElementById("footer-note"),
+            zoomIn: document.getElementById("zoom-in"),
+            zoomOut: document.getElementById("zoom-out"),
+            zoomReset: document.getElementById("zoom-reset"),
             viewerSubtitle: document.getElementById("viewer-subtitle"),
             viewerTitle: document.getElementById("viewer-title")
         };
@@ -643,6 +703,59 @@
         let currentCode = "";
         let libraryFiles = [];
         let filteredFiles = [];
+        let codeFontSizePx = codeZoomConfig.defaultPx;
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function readStoredCodeZoom() {
+            try {
+                const raw = window.localStorage.getItem(codeZoomConfig.storageKey);
+                const parsed = Number.parseFloat(raw);
+                if (!Number.isFinite(parsed)) {
+                    return codeZoomConfig.defaultPx;
+                }
+                return clamp(parsed, codeZoomConfig.minPx, codeZoomConfig.maxPx);
+            } catch (error) {
+                return codeZoomConfig.defaultPx;
+            }
+        }
+
+        function writeStoredCodeZoom(value) {
+            try {
+                window.localStorage.setItem(codeZoomConfig.storageKey, String(value));
+            } catch (error) {
+                return;
+            }
+        }
+
+        function applyCodeZoom() {
+            ui.codeShell.style.fontSize = `${codeFontSizePx}px`;
+
+            const zoomPercent = Math.round((codeFontSizePx / codeZoomConfig.defaultPx) * 100);
+            ui.zoomReset.textContent = `${zoomPercent}%`;
+
+            ui.zoomOut.disabled = codeFontSizePx <= codeZoomConfig.minPx;
+            ui.zoomIn.disabled = codeFontSizePx >= codeZoomConfig.maxPx;
+        }
+
+        function changeCodeZoom(delta) {
+            codeFontSizePx = clamp(
+                codeFontSizePx + delta,
+                codeZoomConfig.minPx,
+                codeZoomConfig.maxPx
+            );
+
+            applyCodeZoom();
+            writeStoredCodeZoom(codeFontSizePx);
+        }
+
+        function resetCodeZoom() {
+            codeFontSizePx = codeZoomConfig.defaultPx;
+            applyCodeZoom();
+            writeStoredCodeZoom(codeFontSizePx);
+        }
 
         function escapeHtml(value) {
             return String(value)
@@ -1102,6 +1215,20 @@
             }
         });
 
+        ui.zoomIn.addEventListener("click", () => {
+            changeCodeZoom(codeZoomConfig.stepPx);
+        });
+
+        ui.zoomOut.addEventListener("click", () => {
+            changeCodeZoom(-codeZoomConfig.stepPx);
+        });
+
+        ui.zoomReset.addEventListener("click", () => {
+            resetCodeZoom();
+        });
+
+        codeFontSizePx = readStoredCodeZoom();
+        applyCodeZoom();
         applyHostingMode();
         loadLibrary();
     </script>
