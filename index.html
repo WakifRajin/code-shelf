@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Shelf</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #f7f3e9;
+            --bg-soft: #efe2cc;
+            --panel: #fffdf8;
+            --ink: #13232f;
+            --ink-muted: #5b6773;
+            --accent: #0f766e;
+            --accent-soft: #d7efe8;
+            --warm: #c2410c;
+            --stroke: #d6cab8;
+            --shadow: 0 16px 44px rgba(19, 35, 47, 0.12);
+            --code-bg: #0e1726;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Sora", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 12% 10%, rgba(15, 118, 110, 0.17), transparent 32%),
+                radial-gradient(circle at 86% 24%, rgba(194, 65, 12, 0.11), transparent 30%),
+                linear-gradient(135deg, var(--bg-main), var(--bg-soft));
+        }
+
+        .texture {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.28;
+            background-image:
+                linear-gradient(to right, rgba(19, 35, 47, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(19, 35, 47, 0.04) 1px, transparent 1px);
+            background-size: 34px 34px;
+            z-index: -1;
+        }
+
+        .topbar {
+            width: min(1220px, 96vw);
+            margin: 22px auto 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(140deg, var(--accent), #18a186);
+            color: #f9fffd;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 8px 22px rgba(15, 118, 110, 0.28);
+        }
+
+        .ghost-button,
+        .solid-button,
+        .copy-button {
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .ghost-button {
+            background: rgba(255, 255, 255, 0.78);
+            color: var(--ink);
+        }
+
+        .ghost-button:hover {
+            transform: translateY(-1px);
+            border-color: var(--accent);
+            background: #ffffff;
+        }
+
+        .solid-button {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #f2fffc;
+        }
+
+        .solid-button:hover {
+            transform: translateY(-1px);
+            background: #0b675f;
+        }
+
+        .layout {
+            width: min(1220px, 96vw);
+            margin: 18px auto 24px;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(255, 253, 248, 0.9));
+            border: 1px solid var(--stroke);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.45rem, 2.5vw, 2rem);
+            line-height: 1.1;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--ink-muted);
+            font-size: 0.96rem;
+        }
+
+        .mono {
+            font-family: "IBM Plex Mono", Consolas, monospace;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.84rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .stats {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .stat-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+
+        .stat-label {
+            margin-top: 5px;
+            color: var(--ink-muted);
+            font-size: 0.8rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 200px auto;
+            gap: 10px;
+        }
+
+        .field,
+        .select {
+            width: 100%;
+            border: 1px solid var(--stroke);
+            background: #fff;
+            color: var(--ink);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font: inherit;
+            font-size: 0.92rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field:focus,
+        .select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.96rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #193240;
+        }
+
+        .section-note {
+            margin: 0;
+            color: var(--ink-muted);
+            font-size: 0.78rem;
+        }
+
+        .file-grid {
+            display: grid;
+            gap: 10px;
+            max-height: 430px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .file-card {
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.88);
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+            animation: cardIn 0.48s ease both;
+            animation-delay: var(--delay, 0ms);
+        }
+
+        .file-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            background: #ffffff;
+        }
+
+        .file-card.is-active {
+            border-color: var(--accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        }
+
+        .file-card-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .file-card h3 {
+            margin: 0;
+            font-size: 0.96rem;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .chip {
+            font-family: "IBM Plex Mono", Consolas, monospace;
+            font-size: 0.74rem;
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-radius: 999px;
+            padding: 4px 8px;
+            white-space: nowrap;
+        }
+
+        .file-card p {
+            margin: 8px 0 10px;
+            color: var(--ink-muted);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .file-card-meta {
+            display: grid;
+            gap: 4px;
+            font-family: "IBM Plex Mono", Consolas, monospace;
+            font-size: 0.72rem;
+            color: #576470;
+        }
+
+        .empty-state {
+            border: 1px dashed var(--stroke);
+            border-radius: 14px;
+            padding: 20px;
+            color: var(--ink-muted);
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .drop-zone {
+            display: block;
+            border: 2px dashed #b6c6c2;
+            border-radius: 16px;
+            padding: 18px;
+            text-align: center;
+            color: #385463;
+            background: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.is-over {
+            border-color: var(--accent);
+            background: rgba(214, 240, 233, 0.7);
+        }
+
+        .upload-status {
+            margin: 10px 2px 0;
+            min-height: 1.25rem;
+            color: #3f5361;
+            font-size: 0.82rem;
+        }
+
+        .upload-status.is-error {
+            color: #9f2f11;
+        }
+
+        .upload-status.is-success {
+            color: #0d665e;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .viewer {
+            padding: 0;
+            overflow: hidden;
+            position: sticky;
+            top: 18px;
+        }
+
+        .viewer-top {
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg, #ffffff, #f9f5ee);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 14px;
+        }
+
+        .viewer-title {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
+        .viewer-subtitle {
+            margin: 6px 0 0;
+            color: var(--ink-muted);
+            font-family: "IBM Plex Mono", Consolas, monospace;
+            font-size: 0.75rem;
+        }
+
+        .copy-button {
+            background: #f8fcfb;
+            color: var(--accent);
+            border-color: #b9dcd5;
+            min-width: 92px;
+        }
+
+        .copy-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            background: #f0faf7;
+            border-color: var(--accent);
+        }
+
+        .copy-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .code-shell {
+            margin: 0;
+            border-radius: 0;
+            max-height: calc(100vh - 210px);
+            overflow: auto;
+            font-size: 13px;
+            line-height: 1.55;
+            background: var(--code-bg);
+        }
+
+        .line-numbers .line-numbers-rows {
+            border-right-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .footer {
+            width: min(1220px, 96vw);
+            margin: 8px auto 24px;
+            color: #4f5b66;
+            font-size: 0.85rem;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(12px);
+            animation: revealIn 0.6s cubic-bezier(0.2, 0.65, 0.2, 1) forwards;
+            animation-delay: var(--reveal-delay, 0ms);
+        }
+
+        @keyframes revealIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer {
+                position: static;
+            }
+
+            .code-shell {
+                max-height: 420px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .topbar {
+                flex-wrap: wrap;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer-top {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="texture"></div>
+
+    <header class="topbar reveal" style="--reveal-delay: 0ms;">
+        <div class="brand">
+            <div class="brand-badge">CS</div>
+            <div>
+                <div>Code Shelf</div>
+                <small style="color: var(--ink-muted); font-weight: 500;">Homepage library and viewer</small>
+            </div>
+        </div>
+        <button class="ghost-button" id="refresh-library" type="button">Refresh Library</button>
+    </header>
+
+    <main class="layout">
+        <section class="stack">
+            <article class="panel hero reveal" style="--reveal-delay: 90ms;">
+                <h1>Store code in one folder and browse it from your homepage.</h1>
+                <p>Upload files into <span class="mono">store/</span>. The server saves each file, blocks overwrite collisions, and updates <span class="mono">store/manifest.json</span> automatically.</p>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Files</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="stat-languages">0</div>
+                        <div class="stat-label">Languages</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="stat-visible">0</div>
+                        <div class="stat-label">Showing</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel reveal" style="--reveal-delay: 160ms;">
+                <div class="controls">
+                    <input id="search-input" class="field" type="search" placeholder="Search by file name, path, description, or tag...">
+                    <select id="language-filter" class="select" aria-label="Filter by language">
+                        <option value="all">All languages</option>
+                    </select>
+                    <button id="clear-filters" class="solid-button" type="button">Clear</button>
+                </div>
+            </article>
+
+            <article class="panel reveal" style="--reveal-delay: 220ms;">
+                <div class="section-header">
+                    <h2 class="section-title">Homepage Code List</h2>
+                    <p class="section-note" id="library-note">Waiting to load library...</p>
+                </div>
+                <div id="library-list" class="file-grid" aria-live="polite"></div>
+            </article>
+
+            <article class="panel reveal" style="--reveal-delay: 300ms;">
+                <div class="section-header" style="margin-bottom: 12px;">
+                    <h2 class="section-title">Upload To Store</h2>
+                    <p class="section-note">Saved files appear in homepage list automatically</p>
+                </div>
+                <label id="drop-zone" class="drop-zone">
+                    Click to upload into store, or drag and drop a file here
+                    <br>
+                    <small style="opacity: 0.8;">Duplicate names are rejected to prevent auto-overwrite</small>
+                    <input id="file-input" type="file">
+                </label>
+                <p id="upload-status" class="upload-status" aria-live="polite"></p>
+            </article>
+        </section>
+
+        <section class="panel viewer reveal" style="--reveal-delay: 140ms;">
+            <div class="viewer-top">
+                <div>
+                    <h2 class="viewer-title" id="viewer-title">Select a file to begin</h2>
+                    <p class="viewer-subtitle" id="viewer-subtitle">Library files and local uploads render here</p>
+                </div>
+                <button id="copy-code" class="copy-button" type="button" disabled>Copy Code</button>
+            </div>
+            <pre id="code-shell" class="code-shell line-numbers"><code id="code-block" class="language-none">Choose a file from the list to preview code with syntax highlighting.</code></pre>
+        </section>
+    </main>
+
+    <p class="footer reveal" style="--reveal-delay: 340ms;">
+        Run this app with the backend server: npm install then npm start, then open http://localhost:5173.
+    </p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+    <script>
+        const manifestApiPath = "/api/store-manifest";
+        const fallbackManifestPath = "store/manifest.json";
+        const uploadApiPath = "/api/upload";
+
+        if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
+            Prism.plugins.autoloader.languages_path = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/";
+        }
+
+        const extensionLanguageMap = {
+            c: "c",
+            cpp: "cpp",
+            cs: "csharp",
+            css: "css",
+            go: "go",
+            h: "c",
+            hpp: "cpp",
+            html: "markup",
+            java: "java",
+            js: "javascript",
+            json: "json",
+            jsx: "jsx",
+            kt: "kotlin",
+            m: "matlab",
+            md: "markdown",
+            php: "php",
+            py: "python",
+            rb: "ruby",
+            rs: "rust",
+            sh: "bash",
+            sql: "sql",
+            swift: "swift",
+            ts: "typescript",
+            tsx: "tsx",
+            txt: "none",
+            xml: "markup",
+            yaml: "yaml",
+            yml: "yaml"
+        };
+
+        const ui = {
+            copyCode: document.getElementById("copy-code"),
+            clearFilters: document.getElementById("clear-filters"),
+            codeBlock: document.getElementById("code-block"),
+            codeShell: document.getElementById("code-shell"),
+            dropZone: document.getElementById("drop-zone"),
+            fileInput: document.getElementById("file-input"),
+            languageFilter: document.getElementById("language-filter"),
+            libraryList: document.getElementById("library-list"),
+            libraryNote: document.getElementById("library-note"),
+            refreshLibrary: document.getElementById("refresh-library"),
+            searchInput: document.getElementById("search-input"),
+            statLanguages: document.getElementById("stat-languages"),
+            statTotal: document.getElementById("stat-total"),
+            statVisible: document.getElementById("stat-visible"),
+            uploadStatus: document.getElementById("upload-status"),
+            viewerSubtitle: document.getElementById("viewer-subtitle"),
+            viewerTitle: document.getElementById("viewer-title")
+        };
+
+        let activeFilePath = "";
+        let currentCode = "";
+        let libraryFiles = [];
+        let filteredFiles = [];
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function getBaseName(path) {
+            return String(path || "").split("/").pop() || "";
+        }
+
+        function getExtension(fileName) {
+            const baseName = getBaseName(fileName);
+            const dotIndex = baseName.lastIndexOf(".");
+            return dotIndex >= 0 ? baseName.slice(dotIndex + 1).toLowerCase() : "";
+        }
+
+        function inferLanguage(fileName, languageHint) {
+            if (typeof languageHint === "string" && languageHint.trim()) {
+                return languageHint.trim().toLowerCase();
+            }
+            const ext = getExtension(fileName);
+            return extensionLanguageMap[ext] || "none";
+        }
+
+        function clearLineNumbers() {
+            const rows = ui.codeShell.querySelector(".line-numbers-rows");
+            if (rows) {
+                rows.remove();
+            }
+        }
+
+        function setViewerText(title, subtitle, text, language) {
+            ui.viewerTitle.textContent = title;
+            ui.viewerSubtitle.textContent = subtitle;
+            ui.codeBlock.className = "";
+            ui.codeBlock.classList.add(`language-${language || "none"}`);
+            ui.codeBlock.textContent = text;
+            currentCode = text;
+            clearLineNumbers();
+            Prism.highlightElement(ui.codeBlock);
+        }
+
+        function setUploadStatus(message, state) {
+            ui.uploadStatus.textContent = message || "";
+            ui.uploadStatus.classList.remove("is-error", "is-success");
+
+            if (state === "error") {
+                ui.uploadStatus.classList.add("is-error");
+            }
+
+            if (state === "success") {
+                ui.uploadStatus.classList.add("is-success");
+            }
+        }
+
+        function updateStats() {
+            ui.statTotal.textContent = String(libraryFiles.length);
+            ui.statVisible.textContent = String(filteredFiles.length);
+            ui.statLanguages.textContent = String(new Set(libraryFiles.map((item) => item.language)).size);
+        }
+
+        function fillLanguageFilter() {
+            const selected = ui.languageFilter.value || "all";
+            const languages = [...new Set(libraryFiles.map((item) => item.language))].sort();
+
+            ui.languageFilter.innerHTML = "";
+
+            const allOption = document.createElement("option");
+            allOption.value = "all";
+            allOption.textContent = "All languages";
+            ui.languageFilter.appendChild(allOption);
+
+            languages.forEach((language) => {
+                const option = document.createElement("option");
+                option.value = language;
+                option.textContent = language;
+                ui.languageFilter.appendChild(option);
+            });
+
+            ui.languageFilter.value = languages.includes(selected) || selected === "all" ? selected : "all";
+        }
+
+        function renderEmptyState(message) {
+            ui.libraryList.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
+        }
+
+        function renderLibraryList() {
+            ui.libraryList.innerHTML = "";
+
+            if (!libraryFiles.length) {
+                renderEmptyState("No files are in store yet. Upload a code file to create entries automatically.");
+                return;
+            }
+
+            if (!filteredFiles.length) {
+                renderEmptyState("No files match your current search and filter.");
+                return;
+            }
+
+            filteredFiles.forEach((item, index) => {
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = "file-card";
+                if (item.path === activeFilePath) {
+                    card.classList.add("is-active");
+                }
+
+                card.style.setProperty("--delay", `${Math.min(index, 10) * 45}ms`);
+
+                const tagText = item.tags.length ? item.tags.join(", ") : "no tags";
+                card.innerHTML = `
+                    <div class="file-card-head">
+                        <h3>${escapeHtml(item.name)}</h3>
+                        <span class="chip">${escapeHtml(item.language)}</span>
+                    </div>
+                    <p>${escapeHtml(item.description)}</p>
+                    <div class="file-card-meta">
+                        <span>${escapeHtml(item.path)}</span>
+                        <span>${escapeHtml(tagText)}</span>
+                    </div>
+                `;
+
+                card.addEventListener("click", () => {
+                    openLibraryFile(item);
+                });
+
+                ui.libraryList.appendChild(card);
+            });
+        }
+
+        function applyFilters() {
+            const search = ui.searchInput.value.trim().toLowerCase();
+            const selectedLanguage = ui.languageFilter.value;
+
+            filteredFiles = libraryFiles.filter((item) => {
+                const allText = [item.name, item.path, item.description, item.tags.join(" ")].join(" ").toLowerCase();
+                const matchSearch = !search || allText.includes(search);
+                const matchLanguage = selectedLanguage === "all" || item.language === selectedLanguage;
+                return matchSearch && matchLanguage;
+            });
+
+            renderLibraryList();
+            updateStats();
+        }
+
+        async function openLibraryFile(item) {
+            activeFilePath = item.path;
+            renderLibraryList();
+            ui.copyCode.disabled = true;
+
+            setViewerText(item.name, "Loading from store...", "Loading file content...", "none");
+
+            try {
+                const response = await fetch(item.path, { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error(`Could not fetch ${item.path}`);
+                }
+
+                const content = await response.text();
+                setViewerText(
+                    item.name,
+                    `${item.path} - ${item.language}`,
+                    content,
+                    inferLanguage(item.name, item.language)
+                );
+                ui.copyCode.disabled = false;
+            } catch (error) {
+                setViewerText(
+                    item.name,
+                    "Could not load this file",
+                    [
+                        "Unable to load the selected file.",
+                        "",
+                        `Path: ${item.path}`,
+                        "",
+                        "Run the backend server with npm start and refresh the page."
+                    ].join("\n"),
+                    "none"
+                );
+                ui.copyCode.disabled = false;
+            }
+        }
+
+        function normalizeManifestItem(item, index) {
+            const safeItem = item || {};
+            const path = typeof safeItem.path === "string" ? safeItem.path.trim() : "";
+            const fallbackName = path ? getBaseName(path) : `file-${index + 1}`;
+
+            return {
+                name: typeof safeItem.name === "string" && safeItem.name.trim() ? safeItem.name.trim() : fallbackName,
+                path,
+                description: typeof safeItem.description === "string" && safeItem.description.trim()
+                    ? safeItem.description.trim()
+                    : "No description provided.",
+                tags: Array.isArray(safeItem.tags) ? safeItem.tags.map((tag) => String(tag)) : [],
+                language: inferLanguage(path || fallbackName, safeItem.language)
+            };
+        }
+
+        async function fetchManifest(path) {
+            const response = await fetch(path, { cache: "no-store" });
+            if (!response.ok) {
+                throw new Error(`Could not fetch ${path}`);
+            }
+
+            const data = await response.json();
+            if (!Array.isArray(data)) {
+                throw new Error("Manifest should be an array.");
+            }
+
+            return data;
+        }
+
+        async function loadLibrary(options = {}) {
+            const preferredPath = options.preferredPath || "";
+            ui.libraryNote.textContent = `Loading ${manifestApiPath} ...`;
+
+            try {
+                let manifestData;
+                let sourcePath = manifestApiPath;
+
+                try {
+                    manifestData = await fetchManifest(manifestApiPath);
+                } catch (apiError) {
+                    manifestData = await fetchManifest(fallbackManifestPath);
+                    sourcePath = fallbackManifestPath;
+                }
+
+                libraryFiles = manifestData
+                    .map((item, index) => normalizeManifestItem(item, index))
+                    .filter((item) => item.path.length > 0);
+
+                fillLanguageFilter();
+                applyFilters();
+
+                ui.libraryNote.textContent = `Loaded ${libraryFiles.length} file(s) from ${sourcePath}`;
+
+                if (!libraryFiles.length) {
+                    ui.copyCode.disabled = true;
+                    return;
+                }
+
+                if (preferredPath) {
+                    const preferredItem = libraryFiles.find((item) => item.path === preferredPath);
+                    if (preferredItem) {
+                        await openLibraryFile(preferredItem);
+                        return;
+                    }
+                }
+
+                if (activeFilePath) {
+                    const activeItem = libraryFiles.find((item) => item.path === activeFilePath);
+                    if (activeItem) {
+                        await openLibraryFile(activeItem);
+                        return;
+                    }
+                }
+
+                await openLibraryFile(libraryFiles[0]);
+            } catch (error) {
+                libraryFiles = [];
+                fillLanguageFilter();
+                applyFilters();
+
+                ui.libraryNote.textContent = "Could not load store manifest.";
+                ui.copyCode.disabled = true;
+                setViewerText(
+                    "Store unavailable",
+                    "Start the backend server to enable uploads",
+                    [
+                        "Could not load store manifest.",
+                        "",
+                        "Run:",
+                        "1) npm install",
+                        "2) npm start",
+                        "",
+                        "Then reload this page."
+                    ].join("\n"),
+                    "none"
+                );
+            }
+        }
+
+        async function uploadFileToStore(file) {
+            if (!file) {
+                return;
+            }
+
+            setUploadStatus(`Uploading ${file.name} ...`);
+            ui.fileInput.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append("codeFile", file, file.name);
+                formData.append("description", "Uploaded from homepage.");
+                formData.append("tags", "upload,store");
+
+                const response = await fetch(uploadApiPath, {
+                    method: "POST",
+                    body: formData
+                });
+
+                let payload = {};
+                try {
+                    payload = await response.json();
+                } catch (error) {
+                    payload = {};
+                }
+
+                if (!response.ok) {
+                    const message = payload.error || "Upload failed.";
+                    setUploadStatus(message, "error");
+                    return;
+                }
+
+                const uploadedPath = payload.item && payload.item.path ? payload.item.path : "";
+                setUploadStatus("Upload saved to store and manifest updated.", "success");
+                await loadLibrary({ preferredPath: uploadedPath });
+            } catch (error) {
+                setUploadStatus("Upload failed. Ensure npm start is running.", "error");
+            } finally {
+                ui.fileInput.disabled = false;
+                ui.fileInput.value = "";
+            }
+        }
+
+        ui.searchInput.addEventListener("input", applyFilters);
+        ui.languageFilter.addEventListener("change", applyFilters);
+
+        ui.clearFilters.addEventListener("click", () => {
+            ui.searchInput.value = "";
+            ui.languageFilter.value = "all";
+            applyFilters();
+        });
+
+        ui.refreshLibrary.addEventListener("click", () => {
+            loadLibrary();
+        });
+
+        ui.fileInput.addEventListener("change", (event) => {
+            uploadFileToStore(event.target.files[0]);
+        });
+
+        ["dragenter", "dragover"].forEach((name) => {
+            ui.dropZone.addEventListener(name, (event) => {
+                event.preventDefault();
+                ui.dropZone.classList.add("is-over");
+            });
+        });
+
+        ["dragleave", "dragend", "drop"].forEach((name) => {
+            ui.dropZone.addEventListener(name, (event) => {
+                event.preventDefault();
+                ui.dropZone.classList.remove("is-over");
+            });
+        });
+
+        ui.dropZone.addEventListener("drop", (event) => {
+            const files = event.dataTransfer ? event.dataTransfer.files : null;
+            if (files && files.length) {
+                uploadFileToStore(files[0]);
+            }
+        });
+
+        ui.copyCode.addEventListener("click", async () => {
+            if (!currentCode) {
+                return;
+            }
+
+            const originalLabel = ui.copyCode.textContent;
+
+            try {
+                await navigator.clipboard.writeText(currentCode);
+                ui.copyCode.textContent = "Copied";
+                setTimeout(() => {
+                    ui.copyCode.textContent = originalLabel;
+                }, 900);
+            } catch (error) {
+                ui.copyCode.textContent = "Copy failed";
+                setTimeout(() => {
+                    ui.copyCode.textContent = originalLabel;
+                }, 900);
+            }
+        });
+
+        loadLibrary();
+    </script>
+</body>
+</html>

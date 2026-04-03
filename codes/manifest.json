@@ -1,0 +1,23 @@
+[
+  {
+    "name": "signal_cleanup.m",
+    "path": "codes/signal_cleanup.m",
+    "language": "matlab",
+    "description": "Removes DC offset and smooths a 1D signal.",
+    "tags": ["matlab", "signal", "utility"]
+  },
+  {
+    "name": "apiClient.js",
+    "path": "codes/apiClient.js",
+    "language": "javascript",
+    "description": "Fetch helper with consistent JSON error handling.",
+    "tags": ["javascript", "fetch", "client"]
+  },
+  {
+    "name": "rolling_average.py",
+    "path": "codes/rolling_average.py",
+    "language": "python",
+    "description": "Computes moving average over numeric data.",
+    "tags": ["python", "stats", "algorithm"]
+  }
+]
