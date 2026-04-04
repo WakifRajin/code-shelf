@@ -1,11 +1,137 @@
 [
   {
+    "name": "gausseidal.m",
+    "path": "store/gausseidal.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "gausselem.m",
+    "path": "store/gausselem.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "gausselemppivot.m",
+    "path": "store/gausselemppivot.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "gaussjordan.m",
+    "path": "store/gaussjordan.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "gaussjordanppivot.m",
+    "path": "store/gaussjordanppivot.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "jacobi.m",
+    "path": "store/jacobi.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "LagrangPolyInterpol.m",
+    "path": "store/LagrangPolyInterpol.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "linearReg.m",
+    "path": "store/linearReg.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
     "name": "max_accuracy_integral.m",
     "path": "store/max_accuracy_integral.m",
     "language": "matlab",
     "description": "Uploaded from homepage.",
     "tags": [
       "upload",
+      "store"
+    ]
+  },
+  {
+    "name": "NewtonPolyInterpol.m",
+    "path": "store/NewtonPolyInterpol.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "NewtonRaphson.m",
+    "path": "store/NewtonRaphson.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "NumericalDifferentiation.m",
+    "path": "store/NumericalDifferentiation.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "NumericalIntegration.m",
+    "path": "store/NumericalIntegration.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "PolynoReg.m",
+    "path": "store/PolynoReg.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "name": "Rk4.m",
+    "path": "store/Rk4.m",
+    "language": "matlab",
+    "description": "Added to store folder.",
+    "tags": [
       "store"
     ]
   },
