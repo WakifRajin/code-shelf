@@ -550,7 +550,7 @@
         <section class="stack">
             <article class="panel hero reveal" style="--reveal-delay: 90ms;">
                 <h1>Store code in one folder and browse it from your homepage.</h1>
-                <p>Upload files into <span class="mono">store/</span>. The server saves each file, blocks overwrite collisions, and updates <span class="mono">store/manifest.json</span> automatically.</p>
+                <p>Commit files into <span class="mono">store/</span>, list them in <span class="mono">store/manifest.json</span>, then refresh to browse instantly.</p>
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-value" id="stat-total">0</div>
@@ -587,13 +587,13 @@
 
             <article class="panel reveal" style="--reveal-delay: 300ms;">
                 <div class="section-header" style="margin-bottom: 12px;">
-                    <h2 class="section-title">Upload To Store</h2>
-                    <p class="section-note">Saved files appear in homepage list automatically</p>
+                    <h2 class="section-title">Static Publishing</h2>
+                    <p class="section-note">GitHub Pages is read-only from the browser</p>
                 </div>
                 <label id="drop-zone" class="drop-zone">
-                    Click to upload one or more files into store, or drag and drop files here
+                    Add files by committing them to store and updating store/manifest.json
                     <br>
-                    <small style="opacity: 0.8;">Duplicate names are rejected to prevent auto-overwrite</small>
+                    <small style="opacity: 0.8;">This panel only shows guidance in static mode</small>
                     <input id="file-input" type="file" multiple>
                 </label>
                 <p id="upload-status" class="upload-status" aria-live="polite"></p>
@@ -604,7 +604,7 @@
             <div class="viewer-top">
                 <div>
                     <h2 class="viewer-title" id="viewer-title">Select a file to begin</h2>
-                    <p class="viewer-subtitle" id="viewer-subtitle">Library files and local uploads render here</p>
+                    <p class="viewer-subtitle" id="viewer-subtitle">Library files render here</p>
                 </div>
                 <div class="viewer-actions">
                     <div class="zoom-controls" role="group" aria-label="Code text zoom controls">
@@ -620,7 +620,7 @@
     </main>
 
     <p class="footer reveal" id="footer-note" style="--reveal-delay: 340ms;">
-        Run this app with the backend server: npm install then npm start, then open http://localhost:5173.
+        Static mode: commit store files and manifest updates, then deploy to GitHub Pages.
     </p>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -628,10 +628,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
     <script>
-        const manifestApiPath = "/api/store-manifest";
-        const fallbackManifestPath = "store/manifest.json";
-        const uploadApiPath = "/api/upload";
-        const isGitHubPages = window.location.hostname.endsWith("github.io");
+        const storeManifestPath = "store/manifest.json";
         const codeZoomConfig = {
             defaultPx: 13,
             minPx: 11,
@@ -815,24 +812,25 @@
             }
         }
 
-        function applyHostingMode() {
-            if (isGitHubPages) {
-                ui.fileInput.disabled = true;
-                ui.dropZone.classList.add("is-disabled");
-                ui.dropZone.setAttribute("aria-disabled", "true");
+        function applyStaticMode() {
+            ui.fileInput.disabled = true;
+            ui.dropZone.classList.add("is-disabled");
+            ui.dropZone.setAttribute("aria-disabled", "true");
+
+            if (window.location.protocol === "file:") {
                 setUploadStatus(
-                    "GitHub Pages mode: uploads cannot be saved from browser. Add files to store/ and commit to GitHub.",
+                    "Static mode: open this site through a local web server, not file://, so manifest and file fetches can work.",
                     "error"
                 );
-
-                if (ui.footerNote) {
-                    ui.footerNote.textContent = "Hosted on GitHub Pages: browsing works from store/manifest.json. Use local npm start mode if you need in-browser upload saving.";
-                }
-                return;
+            } else {
+                setUploadStatus(
+                    "Static mode: browser uploads cannot be saved. Commit files into store/ and update store/manifest.json.",
+                    "error"
+                );
             }
 
             if (ui.footerNote) {
-                ui.footerNote.textContent = "Run this app with the backend server: npm install then npm start, then open http://localhost:5173.";
+                ui.footerNote.textContent = "GitHub Pages ready: this site loads library data directly from store/manifest.json.";
             }
         }
 
@@ -871,7 +869,7 @@
             ui.libraryList.innerHTML = "";
 
             if (!libraryFiles.length) {
-                renderEmptyState("No files are in store yet. Upload a code file to create entries automatically.");
+                renderEmptyState("No files listed yet. Add entries to store/manifest.json and commit your store files.");
                 return;
             }
 
@@ -956,7 +954,7 @@
                         "",
                         `Path: ${item.path}`,
                         "",
-                        "Run the backend server with npm start and refresh the page."
+                        "Check that this file is committed and the path is correct in store/manifest.json."
                     ].join("\n"),
                     "none"
                 );
@@ -996,18 +994,11 @@
 
         async function loadLibrary(options = {}) {
             const preferredPath = options.preferredPath || "";
-            ui.libraryNote.textContent = `Loading ${manifestApiPath} ...`;
+            ui.libraryNote.textContent = `Loading ${storeManifestPath} ...`;
 
             try {
-                let manifestData;
-                let sourcePath = manifestApiPath;
-
-                try {
-                    manifestData = await fetchManifest(manifestApiPath);
-                } catch (apiError) {
-                    manifestData = await fetchManifest(fallbackManifestPath);
-                    sourcePath = fallbackManifestPath;
-                }
+                const sourcePath = storeManifestPath;
+                const manifestData = await fetchManifest(sourcePath);
 
                 libraryFiles = manifestData
                     .map((item, index) => normalizeManifestItem(item, index))
@@ -1048,112 +1039,29 @@
                 ui.libraryNote.textContent = "Could not load store manifest.";
                 ui.copyCode.disabled = true;
 
-                const guidanceLines = isGitHubPages
-                    ? [
-                        "Could not load store manifest.",
-                        "",
-                        "For GitHub Pages:",
-                        "1) Ensure store/manifest.json is committed to your repository.",
-                        "2) Ensure the store files referenced in manifest are committed.",
-                        "3) Wait for Pages deployment to finish, then reload."
-                    ]
-                    : [
-                        "Could not load store manifest.",
-                        "",
-                        "Run:",
-                        "1) npm install",
-                        "2) npm start",
-                        "",
-                        "Then reload this page."
-                    ];
+                const guidanceLines = [
+                    "Could not load store manifest.",
+                    "",
+                    "Check:",
+                    "1) store/manifest.json exists and is valid JSON.",
+                    "2) Every manifest path points to a committed file.",
+                    "3) If running locally, use a static web server instead of opening index.html directly."
+                ];
 
                 setViewerText(
                     "Store unavailable",
-                    isGitHubPages
-                        ? "Check committed store files for static hosting"
-                        : "Start the backend server to enable uploads",
+                    "Check static store files",
                     guidanceLines.join("\n"),
                     "none"
                 );
             }
         }
 
-        async function uploadFilesToStore(fileList) {
-            const files = Array.from(fileList || []).filter(Boolean);
-            if (!files.length) {
-                return;
-            }
-
-            if (isGitHubPages) {
-                setUploadStatus(
-                    "GitHub Pages is static: upload saving is disabled. Commit files into store/ and update store/manifest.json.",
-                    "error"
-                );
-                return;
-            }
-
-            setUploadStatus(`Uploading ${files.length} file(s) ...`);
-            ui.fileInput.disabled = true;
-
-            try {
-                const formData = new FormData();
-                files.forEach((file) => {
-                    formData.append("codeFile", file, file.name);
-                });
-                formData.append("description", "Uploaded from homepage.");
-                formData.append("tags", "upload,store");
-
-                const response = await fetch(uploadApiPath, {
-                    method: "POST",
-                    body: formData
-                });
-
-                let payload = {};
-                try {
-                    payload = await response.json();
-                } catch (error) {
-                    payload = {};
-                }
-
-                const uploadedItems = Array.isArray(payload.uploaded)
-                    ? payload.uploaded
-                    : (payload.item ? [payload.item] : []);
-                const rejectedItems = Array.isArray(payload.rejected) ? payload.rejected : [];
-
-                if (!response.ok) {
-                    const message = payload.error || "Upload failed.";
-                    setUploadStatus(message, "error");
-                    return;
-                }
-
-                const uploadedCount = uploadedItems.length;
-                const rejectedCount = rejectedItems.length;
-
-                if (!uploadedCount) {
-                    setUploadStatus("No files were uploaded.", "error");
-                    return;
-                }
-
-                if (rejectedCount) {
-                    setUploadStatus(
-                        `Uploaded ${uploadedCount} file(s). Rejected ${rejectedCount} file(s) (duplicate or invalid name).`,
-                        "success"
-                    );
-                } else {
-                    setUploadStatus(`Uploaded ${uploadedCount} file(s). Manifest updated automatically.`, "success");
-                }
-
-                const preferredPath = uploadedItems[uploadedItems.length - 1] && uploadedItems[uploadedItems.length - 1].path
-                    ? uploadedItems[uploadedItems.length - 1].path
-                    : "";
-
-                await loadLibrary({ preferredPath });
-            } catch (error) {
-                setUploadStatus("Upload failed. Ensure npm start is running.", "error");
-            } finally {
-                ui.fileInput.disabled = false;
-                ui.fileInput.value = "";
-            }
+        function showStaticUploadGuidance() {
+            setUploadStatus(
+                "This site is static. Add files to store/, update store/manifest.json, commit, then refresh.",
+                "error"
+            );
         }
 
         ui.searchInput.addEventListener("input", applyFilters);
@@ -1169,8 +1077,9 @@
             loadLibrary();
         });
 
-        ui.fileInput.addEventListener("change", (event) => {
-            uploadFilesToStore(event.target.files);
+        ui.fileInput.addEventListener("change", () => {
+            showStaticUploadGuidance();
+            ui.fileInput.value = "";
         });
 
         ["dragenter", "dragover"].forEach((name) => {
@@ -1188,10 +1097,14 @@
         });
 
         ui.dropZone.addEventListener("drop", (event) => {
-            const files = event.dataTransfer ? event.dataTransfer.files : null;
-            if (files && files.length) {
-                uploadFilesToStore(files);
+            if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+                showStaticUploadGuidance();
             }
+        });
+
+        ui.dropZone.addEventListener("click", (event) => {
+            event.preventDefault();
+            showStaticUploadGuidance();
         });
 
         ui.copyCode.addEventListener("click", async () => {
@@ -1229,7 +1142,7 @@
 
         codeFontSizePx = readStoredCodeZoom();
         applyCodeZoom();
-        applyHostingMode();
+        applyStaticMode();
         loadLibrary();
     </script>
 </body>
