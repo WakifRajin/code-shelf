@@ -6,6 +6,8 @@ x = [0, 1, 2, 3, 4, 5];        % x data points
 y = [0, 1, 4, 9, 16, 25];      % y data points = f(x)
 xx = 2.5;                       % point to interpolate at
 
+n = length(x);
+
 b = zeros(n, n);
 b(:,1) = y(:);                  % first column = y values
 
